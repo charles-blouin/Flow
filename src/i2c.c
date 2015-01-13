@@ -219,8 +219,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	} u;
 
 	u.f.frame_count = frame_count;
-	u.f.pixel_flow_x_sum = pixel_flow_x * 10.0f*100;
-	u.f.pixel_flow_y_sum = pixel_flow_y * 10.0f*100;
+	u.f.pixel_flow_x_sum = pixel_flow_x;
+	u.f.pixel_flow_y_sum = pixel_flow_y;
 	u.f.flow_comp_m_x = flow_comp_m_x * 1000;
 	u.f.flow_comp_m_y = flow_comp_m_y * 1000;
 	u.f.qual = qual;

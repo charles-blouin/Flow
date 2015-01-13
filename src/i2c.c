@@ -219,8 +219,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	} u;
 
 	u.f.frame_count = frame_count;
-	u.f.pixel_flow_x_sum = pixel_flow_x * 10.0f;
-	u.f.pixel_flow_y_sum = pixel_flow_y * 10.0f;
+	u.f.pixel_flow_x_sum = pixel_flow_x * 10.0f*100;
+	u.f.pixel_flow_y_sum = pixel_flow_y * 10.0f*100;
 	u.f.flow_comp_m_x = flow_comp_m_x * 1000;
 	u.f.flow_comp_m_y = flow_comp_m_y * 1000;
 	u.f.qual = qual;
@@ -256,6 +256,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	static float accumulated_gyro_z = 0;
 	static uint32_t integration_timespan = 0;
 	static uint32_t lasttime = 0;
+	static float average_drift_x_static = 0;
+	static float average_drift_y_static = 0;
 
 	/* calculate focal_length in pixel */
 	const float focal_length_px = ((global_data.param[PARAM_FOCAL_LENGTH_MM])
@@ -271,19 +273,22 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 //				accumulated_framecount, (uint8_t) (accumulated_quality / accumulated_framecount), ground_distance);
 
 		integration_timespan = 0;
-		accumulated_flow_x = 0;			 //mrad
-		accumulated_flow_y = 0;			 //mrad
+		//accumulated_flow_x = 0;			 //mrad
+		//accumulated_flow_y = 0;			 //mrad
 		accumulated_framecount = 0;
 		accumulated_quality = 0;
-		accumulated_gyro_x = 0;			 //mrad
-		accumulated_gyro_y = 0;			 //mrad
-		accumulated_gyro_z = 0;			 //mrad
+		//accumulated_gyro_x = 0;			 //mrad
+		//accumulated_gyro_y = 0;			 //mrad
+		//accumulated_gyro_z = 0;			 //mrad
 		stop_accumulation = 0;
 	}
 
 	//accumulate flow and gyro values between sucessive I2C readings
 	//update only if qual !=0
 	if (qual > 0) {
+
+		average_drift_x_static = average_drift_x_static*0.99 + 0.01*pixel_flow_y;
+		average_drift_y_static = average_drift_y_static*0.99 + 0.01*pixel_flow_x;
 		uint32_t deltatime = (get_boot_time_us() - lasttime);
 		integration_timespan += deltatime;
 		accumulated_flow_x += pixel_flow_y * 1000.0f / focal_length_px * 1.0f;//mrad axis swapped to align x flow around y axis
@@ -307,6 +312,8 @@ void update_TX_buffer(float pixel_flow_x, float pixel_flow_y,
 	u_integral.f.integration_timespan = integration_timespan;     //microseconds
 	u_integral.f.ground_distance = ground_distance * 1000;		    //mmeters
 	u_integral.f.sonar_timestamp = time_since_last_sonar_update;  //microseconds
+	u_integral.f.average_drift_x = average_drift_x_static*1000.0f;
+	u_integral.f.average_drift_y = average_drift_x_static*1000.0f;
 	u_integral.f.qual =
 			(uint8_t) (accumulated_quality / accumulated_framecount); //0-255 linear quality measurement 0=bad, 255=best
 	u_integral.f.gyro_temperature = gyro_temp;//Temperature * 100 in centi-degrees Celsius

@@ -39,8 +39,8 @@
 typedef  struct i2c_frame
 {
     uint16_t frame_count;
-    float pixel_flow_x_sum;
-    float pixel_flow_y_sum;
+    int16_t pixel_flow_x_sum;
+    int16_t pixel_flow_y_sum;
     int16_t flow_comp_m_x;
     int16_t flow_comp_m_y;
     int16_t qual;
